@@ -3,7 +3,6 @@ package com.crazy_coder.everfit_wear.presentation
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -33,6 +32,8 @@ import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationCompat
+import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.Card
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
@@ -40,16 +41,15 @@ import com.crazy_coder.everfit_wear.R
 import com.crazy_coder.everfit_wear.presentation.theme.WearOSTeamKoderTheme
 import com.crazy_coder.everfit_wear.service.StartupReceiver.Companion.PERMISSION
 import com.crazy_coder.everfit_wear.utils.startWorker
-import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.gms.wearable.MessageClient
 import com.google.android.gms.wearable.Wearable
-import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<MainViewModel>()
+    val notification = AppNotificationManager(this)
     private val eventListenMessage: MessageClient.OnMessageReceivedListener by lazy {
         MessageClient.OnMessageReceivedListener {
             String(it.data).let {
@@ -60,18 +60,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                return@OnCompleteListener
-            }
-
-            // Get new FCM registration token
-            Toast.makeText(this@MainActivity, "${task.result}", Toast.LENGTH_LONG).show()
-            Log.e("AAAAAAAAAAAAA", "${task.result}")
-            task.result?.let {
-                viewModel.updateToken(it)
-            }
-        })
         viewModel.permissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { result ->
@@ -81,7 +69,7 @@ class MainActivity : ComponentActivity() {
         runCatching { startWorker() }
         viewModel.updateStatusPermission(checkSelfPermission(PERMISSION) == PackageManager.PERMISSION_GRANTED)
         setContent {
-            WearApp(viewModel)
+            WearApp(viewModel, notification)
         }
     }
 
@@ -98,7 +86,7 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun WearApp(viewModel: MainViewModel) {
+fun WearApp(viewModel: MainViewModel, notify: AppNotificationManager) {
     WearOSTeamKoderTheme {
         Column(
             modifier = Modifier
@@ -152,11 +140,12 @@ fun WearApp(viewModel: MainViewModel) {
 
                     Row {
                         Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            modifier = Modifier
-                                .padding(horizontal = 8.dp),
-                            text = viewModel.state.value.token
-                        )
+                        Button(onClick = { notify.showNotification("Chao ae") }) {
+                            Text(
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                                text = "Show notification"
+                            )
+                        }
                     }
                 }
             }

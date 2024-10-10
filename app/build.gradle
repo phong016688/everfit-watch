@@ -91,7 +91,7 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4"
 
-    def mockkVersion = "1.13.4"
+    def mockkVersion = "1.13.13"
     testImplementation "io.mockk:mockk:${mockkVersion}"
     testImplementation "io.mockk:mockk-android:${mockkVersion}"
 
